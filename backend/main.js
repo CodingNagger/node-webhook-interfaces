@@ -1,35 +1,103 @@
 // Initialize WebHooks module.
 var WebHooks = require('node-webhooks');
+var bodyParser = require('body-parser')
 
 var webHooksDBPath = './webHooksDB.json';
 
 var webHooks = new WebHooks({
-    db: webHooksDBPath, // json file that store webhook URLs
+  db: webHooksDBPath, // json file that store webhook URLs
 });
 
 var express = require('express');
 var app = express();
-var fs = require("fs");0
+var fs = require("fs");
+
+app.use(bodyParser.json());
+
 app.get('', function (req, res) {
-   res.end('Coucou voici ma bite')
+  res.end('Welcome to Node Webhook Interfaces')
 })
 
 app.get('/api/webhook', function (req, res) {
-   fs.readFile( webHooksDBPath, 'utf8', function (err, data) {
-       console.log( data );
-       res.end( data );
-   });
+  webHooks.getDB().then(function(result){
+  	res.end(JSON.stringify(result));
+  }).catch(function(err){
+  	console.log(err);
+
+    res.statusCode = 500;
+    res.end();
+  });
 })
 
 app.get('/api/webhook/:key', function (req, res) {
-   fs.readFile( webHooksDBPath, 'utf8', function (err, data) {
-      data = JSON.parse( data );
-      var urlsForKey = JSON.stringify(data[req.params.key]);
+  webHooks.getWebHook(req.params.key).then(function(result) {
+    if (Object.keys(result).length === 0 && result.constructor === Object) {
+      res.statusCode = 204;
+    }
 
-      console.log( urlsForKey );
-      res.end( urlsForKey );
-   });
+    var data = JSON.stringify(result);
+
+    console.log(data);
+
+    res.end(data);
+  }).catch(function(err){
+    console.log(err);
+
+    res.statusCode = 500;
+    res.end();
+  });
 })
+
+app.post('/api/webhook/:key', function (req, res) {
+  var urls = req.body;
+  var errorCount = 0;
+
+  if (urls.length === 0) {
+    res.statusCode = 400;
+    res.end();
+  }
+
+  urls.forEach(function(url) {
+    webHooks.add(req.params.key, url).then(function(){
+
+    }).catch(function(err){
+      console.log(err);
+      errorCount++;
+    });
+  });
+
+  if (errorCount === urls.length) {
+    res.statusCode = 500;
+  }
+
+  res.end();
+})
+
+app.delete('/api/webhook/:key', function (req, res) {
+  var urls = req.body;
+
+  if (Object.keys(urls).length === 0 && urls.constructor === Object) {
+    webHooks.remove(req.params.key).then(function(){
+
+    }).catch(function(err){
+      console.log(err);
+      res.statusCode = 500;
+    });
+  }
+  else {
+    urls.forEach(function(url) {
+      webHooks.remove(req.params.key, url).then(function(){
+
+      }).catch(function(err){
+        console.log(err);
+        res.statusCode = 500;
+      });
+    });
+  }
+
+  res.end();
+})
+
 
 var server = app.listen(8081, function () {
 
@@ -43,16 +111,16 @@ var server = app.listen(8081, function () {
 /*
 // sync instantation - add a new webhook called 'shortname1'
 webHooks.add('shortname1', 'http://127.0.0.1:9000/prova/other_url').then(function(){
-    // done
+// done
 }).catch(function(err){
-    console.log(err);
+console.log(err);
 });
 
 // add another webHook
 webHooks.add('shortname2', 'http://127.0.0.1:9000/prova2/').then(function(){
-    // done
+// done
 }).catch(function(err){
-    console.log(err);
+console.log(err);
 });
 
 // remove a single url attached to the given shortname

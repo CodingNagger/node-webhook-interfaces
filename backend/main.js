@@ -1,6 +1,6 @@
 // Initialize WebHooks module.
 var WebHooks = require('node-webhooks');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 
 var webHooksDBPath = './webHooksDB.json';
 
@@ -11,6 +11,16 @@ var webHooks = new WebHooks({
 var express = require('express');
 var app = express();
 var fs = require("fs");
+
+var emitter = webHooks.getEmitter();
+
+emitter.on('*.success', function (shortname, statusCode, body) {
+    console.log('Success on trigger webHook ' + shortname + ' with status code', statusCode, 'and body', body);
+});
+
+emitter.on('*.failure', function (shortname, statusCode, body) {
+    console.error('Error on trigger webHook ' + shortname + ' with status code', statusCode, 'and body', body);
+});
 
 app.use(bodyParser.json());
 
@@ -27,6 +37,15 @@ app.get('/api/webhook', function (req, res) {
     res.statusCode = 500;
     res.end();
   });
+})
+
+app.post('/api/webhook/:key/trigger', function (req, res) {
+  var body = JSON.stringify(req.body);
+
+  req.headers['content-length'] = body.length;
+
+  webHooks.trigger(req.params.key, req.body, req.headers);
+  res.end();
 })
 
 app.get('/api/webhook/:key', function (req, res) {
@@ -46,6 +65,17 @@ app.get('/api/webhook/:key', function (req, res) {
     res.statusCode = 500;
     res.end();
   });
+})
+
+app.post('/trigger/test/url', function (req, res) {
+
+  console.log("Request called for trigger on: "+'/trigger/test/url');
+  console.log(req.body);
+  console.log(req.headers);
+
+  console.log("Request ended");
+
+  res.end("Request ended");
 })
 
 app.post('/api/webhook/:key', function (req, res) {

@@ -3,13 +3,13 @@ var express = require('express');
 
 var app = express();
 var api = require('./api').create();
-var admin = express();
+var admin = require('./admin').create();
 
 app.use('/api', api);
 app.use('/manager', admin);
 
 app.get('', function (req, res) {
-  res.render('index');
+  res.end('');
 })
 
 var server = app.listen(8081, function () {

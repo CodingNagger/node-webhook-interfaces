@@ -140,6 +140,78 @@ module.exports = {
       res.end();
     })
 
+    /**
+     * Mildly restful-ish endpoints created to accomodate with the DataTable UI querying
+     */
+     api.get('/webhook/entries', function (req, res) {
+       webHooks.getDB().then(function(result){
+         var responseData = [];
+
+         Object.keys(result).forEach(function(key) {
+             console.log(key, result[key]);
+
+             var len = result[key].length;
+             for (var i = 0; i < len; i++) {
+                 responseData.push({
+                     key: key,
+                     url: result[key][i]
+                 });
+             }
+         });
+
+         res.end(JSON.stringify({ data: responseData }));
+       }).catch(function(err){
+         console.log(err);
+
+         res.statusCode = 500;
+         res.end();
+       });
+     })
+
+     api.post('/webhooks/entries/add', function (req, res) {
+       var entry = req.body.data[0];
+
+       webHooks.add(entry.key, entry.url).then(function(){
+
+       }).catch(function(err) {
+         res.statusCode = 500;
+         console.log(err);
+       });
+
+       res.end();
+     })
+
+     api.post('/webhooks/entries/update', function (req, res) {
+       var entry = req.body.data[0];
+
+       webHooks.add(entry.key, entry.url).then(function(){
+         webHooks.remove(entry.key, entry.url).then(function(){
+
+         }).catch(function(err) {
+           console.log(err);
+           res.statusCode = 500;
+         });
+       }).catch(function(err) {
+         res.statusCode = 500;
+         console.log(err);
+       });
+
+       res.end();
+     })
+
+     api.post('/webhooks/entries/remove', function (req, res) {
+       var entry = req.body.data[0];
+
+       webHooks.remove(entry.key, entry.url).then(function(){
+
+       }).catch(function(err){
+         console.log(err);
+         res.statusCode = 500;
+       });
+
+       res.end();
+     })
+
     return api;
   }
 };

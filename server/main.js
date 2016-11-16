@@ -5,8 +5,6 @@ const path = require('path');
 var app = express();
 var api = require('./api').create();
 
-//var admin = require('./admin').create();
-
 app.use('/api', api);
 app.use('/', express.static(path.join(__dirname, 'admin')))
 

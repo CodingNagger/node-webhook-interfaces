@@ -7,13 +7,75 @@
 <title>Node Webhook Admin</title>
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/select/1.2.0/js/dataTables.select.min.js"></script>
+<script type="text/javascript" src="js/dataTables.editor.min.js"></script>
+
 <script type="text/javascript">
+var additionHandler;
+var updateHandler;
+var removalHandler;
+
 $(document).ready(function() {
- var table = $('#example').DataTable({
-   "ajax": "api/webhook/table",
+   additionHandler = new $.fn.dataTable.Editor( {
+         ajax: "api/webhooks/entries/add",
+         table: "#webhooks",
+         fields: [ {
+                 label: "Webhook name:",
+                 name: "key"
+             }, {
+                 label: "URL:",
+                 name: "url"
+             }
+         ],
+         data: function ( d ) {
+            return JSON.stringify( d );
+          }
+     } );
+
+     updateHandler = new $.fn.dataTable.Editor( {
+           ajax: "api/webhooks/entries/update",
+           table: "#webhooks",
+           fields: [ {
+                   label: "Webhook name:",
+                   name: "key"
+               }, {
+                   label: "URL:",
+                   name: "url"
+               }
+           ],
+           data: function ( d ) {
+              return JSON.stringify( d );
+            }
+       } );
+
+       removalHandler = new $.fn.dataTable.Editor( {
+             ajax: "api/webhooks/entries/remove",
+             table: "#webhooks",
+             fields: [ {
+                     label: "Webhook name:",
+                     name: "key"
+                 }, {
+                     label: "URL:",
+                     name: "url"
+                 }
+             ],
+             data: function ( d ) {
+                return JSON.stringify( d );
+              }
+         } );
+
+ var table = $('#webhooks').DataTable({
+   "ajax": "api/webhook/entries",
    "columns": [
-          { "data": "key" },
-          { "data": "url" }
+          {
+               data: null,
+               defaultContent: '',
+               className: 'select-checkbox',
+               orderable: false
+           },
+          { data: "key" },
+          { data: "url" }
       ],
      "columnDefs": [
          { "visible": false, "targets": 0 }
@@ -34,7 +96,17 @@ $(document).ready(function() {
                  last = group;
              }
          } );
-     }
+     },
+     ,
+      select: {
+          style:    'os',
+          selector: 'td:first-child'
+      },
+      buttons: [
+          { extend: "create", editor: additionHandler },
+          { extend: "edit",   editor: updateHandler },
+          { extend: "remove", editor: removalHandler }
+      ]
  } );
 } );
 </script>
@@ -47,7 +119,7 @@ $(document).ready(function() {
 </header>
 <main>
 
-<table id="example" class="display" cellspacing="0" width="100%">
+<table id="webhooks" class="display" cellspacing="0" width="100%">
       <thead>
           <tr>
               <th>Webhook name</th>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+<title>Node Webhook Admin</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+ var table = $('#example').DataTable({
+   "ajax": "api/webhook/table",
+   "columns": [
+          { "data": "key" },
+          { "data": "url" }
+      ],
+     "columnDefs": [
+         { "visible": false, "targets": 0 }
+     ],
+     "order": [[ 0, 'asc' ]],
+     "displayLength": 25,
+     "drawCallback": function ( settings ) {
+         var api = this.api();
+         var rows = api.rows( {page:'current'} ).nodes();
+         var last=null;
+
+         api.column(0, {page:'current'} ).data().each( function ( group, i ) {
+             if ( last !== group ) {
+                 $(rows).eq( i ).before(
+                     '<tr class="group"><td colspan="5">'+group+'</td></tr>'
+                 );
+
+                 last = group;
+             }
+         } );
+     }
+ } );
+} );
+</script>
+</head>
+
+<body>
+<header>
+	<h1>Node Webhook Admin</h1>
+	<p><em>Your Node.JS powered webhook admin</em></p>
+</header>
+<main>
+
+<table id="example" class="display" cellspacing="0" width="100%">
+      <thead>
+          <tr>
+              <th>Webhook name</th>
+              <th>URL</th>
+          </tr>
+      </thead>
+      <tfoot>
+          <tr>
+              <th>Webhook name</th>
+              <th>URL</th>
+          </tr>
+      </tfoot>
+
+  </table>
+
+</main>
+</body>
+</html>

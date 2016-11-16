@@ -53,7 +53,7 @@ module.exports = {
             }
         });
 
-        res.end(JSON.stringify(responseData));
+        res.end(JSON.stringify({ data: responseData }));
       }).catch(function(err){
         console.log(err);
 

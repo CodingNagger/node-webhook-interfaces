@@ -152,10 +152,9 @@ module.exports = {
 
              var len = result[key].length;
              for (var i = 0; i < len; i++) {
-                 responseData.push({
-                     key: key,
-                     url: result[key][i]
-                 });
+                 responseData.push(
+                    [ key, result[key][i]]
+                 );
              }
          });
 

@@ -4,6 +4,7 @@ module.exports = {
     // Initialize WebHooks module.
     var WebHooks = require('node-webhooks');
     var bodyParser = require('body-parser');
+    var fs = require('fs');
 
     var webHooksDBPath = './webHooksDB.json';
 
@@ -141,7 +142,7 @@ module.exports = {
     })
 
     /**
-     * Mildly restful-ish endpoints created to accomodate with the DataTable UI querying
+     * Mildly restful-ish endpoint created to accomodate with the DataTable UI querying
      */
      api.get('/webhook/entries', function (req, res) {
        webHooks.getDB().then(function(result){
@@ -167,50 +168,22 @@ module.exports = {
        });
      })
 
-     api.post('/webhooks/entries/add', function (req, res) {
-       var entry = req.body.data[0];
+     api.post('/webhooks/config', function (req, res) {
 
-       webHooks.add(entry.key, entry.url).then(function(){
+       fs.readFile(req.files.displayImage.path, function (err, data) {
+          var newPath = __dirname + "/" + webHooksDBPath;
+          fs.writeFile(newPath, data, function (err) {
+            res.redirect("back");
+          });
+        });
+      res.end();
+    })
 
-       }).catch(function(err) {
-         res.statusCode = 500;
-         console.log(err);
-       });
-
-       res.end();
-     })
-
-     api.post('/webhooks/entries/update', function (req, res) {
-       var entry = req.body.data[0];
-
-       webHooks.add(entry.key, entry.url).then(function(){
-         webHooks.remove(entry.key, entry.url).then(function(){
-
-         }).catch(function(err) {
-           console.log(err);
-           res.statusCode = 500;
-         });
-       }).catch(function(err) {
-         res.statusCode = 500;
-         console.log(err);
-       });
-
-       res.end();
-     })
-
-     api.post('/webhooks/entries/remove', function (req, res) {
-       var entry = req.body.data[0];
-
-       webHooks.remove(entry.key, entry.url).then(function(){
-
-       }).catch(function(err){
-         console.log(err);
-         res.statusCode = 500;
-       });
-
-       res.end();
-     })
+    api.get('/webhooks/config', function (req, res) {
+      res.end(webHooks.getDB());
+    })
 
     return api;
   }
+
 };
